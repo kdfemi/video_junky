@@ -1,68 +1,82 @@
-'use client'
-import { usePathname, useSearchParams } from "next/navigation";
-import { FC, Key, useCallback, useEffect, useRef, useState } from "react";
-import { getVideos } from "src/service/videos.service";
-import { Video } from "src/types/Video";
-import { GetVideosRequestParams } from "src/types/VideoService.model";
+'use client';
+import { FC, useEffect, useState} from "react";
 import VideoItem from "../videoItem";
 import Pagination from "../pagination";
-import { PageDetails } from "src/types/BaseApiResponse";
-import { useRouter } from "next/router";
+import { getVideos } from "src/app/api/actions";
+import { Video } from "src/types/Video";
+import SearchInput from "../searchInput";
+import { classes } from "src/common/helper";
+import { useMediaQuery } from "src/hooks/useMediaQuery";
+import CloseIcon from 'src/assets/icons/close.svg';
+import VideoIcon from 'src/assets/icons/video.svg';
 
-export type VideoListsProps = {};
+export type VideoListsProps = {
+    // params: GetVideosRequestParams;
+    result: ReturnType<typeof getVideos>
+};
 
-const VideoLists: FC<VideoListsProps> = () => {
-    const [videos, setVideos] = useState<Array<Video>>([]);
-    const [loading, setLoading] = useState(false);
-    const [activeVideo, setActiveVideo] = useState<Video>();
-    const [pageCount, setPageCount] = useState<PageDetails>({page: 0, pageCount: 0, pages: 0, size: 0});
-    const router = useRouter();
-    
-    const searchParams = useSearchParams();
-    const pathname = usePathname();
-    // const pages = useRef({page: 1, pages: 0, size: 10, search: ''});
-
-    const fetchPages = useCallback(async (params: GetVideosRequestParams) => {
-        try {
-            setLoading(true);
-            setVideos([]);
-            const page =  parseInt(searchParams.get('page') ?? '1', 10);
-            const size = parseInt(searchParams.get('size') ?? '10');
-            const search = searchParams.get('q') ?? '';
-            const response = await getVideos({
-                page, search, size
-            });
-            if(response.statusCode === 200) {
-                const {results, ...others} = response.data;
-                setVideos(results);
-                setPageCount(others);
-            } else {
-                // TODO: handle error
-            }
-        } catch (err) {
-            // TODO: handle error
-            console.log(err)
-        } finally {
-            setLoading(false);
-        }
-    }, [searchParams]);
+const VideoLists: FC<VideoListsProps> =  ({result}) => {
+ 
+    // const response = await getVideos({
+    //     page: params.page, search: params.search, size: params.size ?? 10
+    // });
+    const {results, page, pageCount, pages, size} = result;
+    const [visible, setVisible] = useState(false)
+    const isLargeScreen = useMediaQuery("(min-width: 768px)");
 
     useEffect(() => {
-        fetchPages({page: 1, size: 10})
-    }, [fetchPages])
+        setVisible(isLargeScreen);
+    }, [isLargeScreen])
 
-    const handlePageChange = (page: number) => {
-        // router.push()
-    }
+    const onSelected = () => {
+        console.log(isLargeScreen)
+        if(!isLargeScreen) {
+            setVisible(false);
+        }
+    };
 
     
     return (
-        <aside className="w-full max-w-[530px] md:pl-6 md:pr-2 overflow-y-auto space-y-4 h-[calc(100vh-64px-2.5rem)] pb-5" >
-            {videos.map(video => (
-                <VideoItem video={video} key={video.id.videoId}/>
-            ))}
-            <Pagination onPageChange={handlePageChange} initialPage={parseInt(searchParams.get('page') ?? '1', 10)} count={pageCount.pageCount} size={pageCount.size} />
-        </aside>
+        <>
+            <button className="flex gap-2 md:hidden mt-2 mb-4 bg-junky-yellow text-primary font-medium p-1 rounded-md items-center" onClick={() => setVisible(!visible)}>
+                <VideoIcon width={24} height={24} className="inline"/>
+                <span>Show Videos</span>
+            </button>
+            <aside 
+                className={classes(
+                "w-full md:max-w-[530px] md:pr-3 overflow-y-auto space-y-4 md:h-[calc(100vh-64px-2.5rem)] pb-5",
+                "md:relative fixed right-0 bottom-0 top-0 px-4",
+                "md:left-[unset] md:right-[unset] md:bottom-[unset] md:top-[unset] bg-primary z-40 transition-transform md:transition-none ease-in duration-500",
+                "md:block", !visible ? 'translate-x-[-100vw]' : 'translate-x-0'
+                )}
+            >
+                <div className="sticky top-0 space-y-2 flex flex-col bg-primary pb-3 z-10 md:pt-0 pt-5 items-center gap-3">
+                    <div className="md:hidden self-end" role="button" aria-label="Close Menu" title="Close Menu" onClick={onSelected}>
+                        <CloseIcon className="text-white"/>
+                    </div>
+                    <div className="w-full">
+                        <SearchInput placeholder="Search Videos" />
+                    </div>
+                </div>
+                {!results.length ? (
+                    <div>
+                        <p className="text-gray-500 text-base text-center mt-8 mb-8">No Videos available</p>
+                    </div>
+                ) : (
+                    <div>
+                        {results.map(video => (
+                            <VideoItem video={video as Video} key={video.id.videoId} onSelected={onSelected}/>
+                        ))}
+                    </div>
+                )}
+                {!!results.length && (
+                    <Pagination 
+                        count={pageCount} 
+                        size={pages} 
+                    />
+                )}
+            </aside>
+        </>
     );
 
 };

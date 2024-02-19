@@ -103,12 +103,21 @@ export class JunkyPaginatedResponse<T = Array<any>> {
             ...props,
             data: {
                 results: this.result,
-                page: this.page,
-                size: this.size,
-                pageCount: this.pageCount,
-                pages: this.pages
+                ...this.getPaginationProps(),
             }
         })
+    }
+
+    /**
+     * returns pagination property
+     */
+    getPaginationProps() {
+        return {
+            page: this.page,
+            size: this.size,
+            pageCount: this.pageCount,
+            pages: this.pages
+        }
     }
 
     /**

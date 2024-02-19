@@ -1,4 +1,4 @@
 interface Window {
     onYouTubeIframeAPIReady: () => void;
-    YT: any;
+    __YTPlayer: YT.Player;
 }

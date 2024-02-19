@@ -55,6 +55,33 @@ export const makeUrl = (url: string, json?: {[key: string]: any}) => {
   
     for (const key in removeNull(json)) {
       url = url.replace(`:${key}`, encodeURIComponent(json[key]));
+      if(url.includes(`:${key}`)) {
+        delete json[key];
+      }
     }
-    return url;
+    let params = ''
+    if(Object.keys(json).length) {
+      params = new URLSearchParams(json).toString();
+    }
+
+    return `${url}${params ? '?'+params : ''}`;
 };
+
+/**
+ * Debounce delays function calls and override the previous function if the function was called again before time elapse
+ * @param func function to call
+ * @param timeout delay in milliseconds before function is called
+ * @returns function
+ */
+export const debounce = (func: Function, timeout: number) => {
+  let timeoutId: ReturnType<typeof setTimeout>;
+
+  return (value: any) => {
+    if(timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      func(value);
+    }, timeout);
+  };
+}
