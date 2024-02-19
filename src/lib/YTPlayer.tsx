@@ -1,5 +1,7 @@
 'use client'
+import Script from 'next/script';
 import React, { ComponentProps, ForwardRefRenderFunction, forwardRef, useEffect, useImperativeHandle, useRef,  } from 'react';
+import { classes } from 'src/common/helper';
 
 export type YTPlayerProps = {
     /**
@@ -11,13 +13,24 @@ export type YTPlayerProps = {
      * @param event Youtube api event
      * @returns 
      */
-    onPlayerReady: (event: YT.PlayerEvent) => void;
+    onPlayerReady: (event: YT.PlayerEvent, videoId: string) => void;
     /**
      * Called when Player state changes
      * @param state Player status
      * @returns 
      */
-    onPlayerStateChange?: (state: YT.OnStateChangeEvent['data']) => void;
+    onPlayerStateChange?: (state: YT.OnStateChangeEvent['data'], videoId: string) => void;
+
+    /**
+     * Video start duration in seconds
+     */
+    start?: number;
+
+    /**
+     * Video end duration in seconds
+     */
+    end?: number;
+
 } & Omit<ComponentProps<'iframe'>, 'src'>;
 
 export type IYTPlayer = {
@@ -30,7 +43,7 @@ export type IYTPlayer = {
    * Change to a new video
    * @param videoId Id of the video to play
    */
-  changeVideo: (videoId: string) => void;
+  changeVideo: (videoId: string, start?: number, end?: number) => void;
   /**
    * Set where the video should play from and stop at
    * @param arg video duration
@@ -54,7 +67,9 @@ export type LoadVideoDurationProps = {endSeconds?: number; startSeconds?: number
 
 const YT_IFRAME_ID = 'yt-iframe';
 
-const YTPlayer: ForwardRefRenderFunction<IYTPlayer, YTPlayerProps> = ({initialVideo, onPlayerReady, onPlayerStateChange, ...props}, ref) => {
+const cached: Array<string> = [];
+
+const YTPlayer: ForwardRefRenderFunction<IYTPlayer, YTPlayerProps> = ({initialVideo, onPlayerReady, onPlayerStateChange, start, end, children, ...props}, ref) => {
     const player = useRef<YT.Player>();
     const videoId = useRef(initialVideo)
 
@@ -71,47 +86,58 @@ const YTPlayer: ForwardRefRenderFunction<IYTPlayer, YTPlayerProps> = ({initialVi
   
 
     useEffect(() => {
-        // create Youtube iframe api script props
-        const src = 'https://www.youtube.com/iframe_api';
-        const script = document.createElement('script');
-        script.id = 'YTPlayer-script';
-        script.src = src;
-        document.body.appendChild(script);
-    
         // handles when player state is ready
         function _onPlayerReady(event: YT.PlayerEvent) {
-            onPlayerReady(event);
-            console.log(event.target, 'onPlayerReady')
+            onPlayerReady(event, videoId.current);
         }
 
         // handle when youtube player changes
         function _onPlayerStateChange(event: YT.OnStateChangeEvent) {
-            console.log(event.data, '_onPlayerStateChange')
-            onPlayerStateChange?.(event.data);
-        }        
-    
-        let _player:  YT.Player;
-    
-        // called when Youtube iframe api is ready. We do all component initialization here
-        window.onYouTubeIframeAPIReady = function onYouTubeIframeAPIReady() {
-            _player = new YT.Player(YT_IFRAME_ID, {
-                events: {
-                'onReady': _onPlayerReady,
-                'onStateChange': _onPlayerStateChange,
-                },
-                playerVars: {
-                    controls: 0,
-                    showinfo: 0
-                },
-            });
-            player.current = _player;
-        }
-    }, [onPlayerReady, onPlayerStateChange]);
+            onPlayerStateChange?.(event.data, videoId.current);
+        }   
 
-    const changeVideo = (_videoId: string) => {
+   
+        // create Youtube iframe api script props
+        // USED NEXTJS SCRIPT for optimization reseons
+        // if(!cached.length) {
+        //     const script = document.createElement('script');
+        //     const src = 'https://www.youtube.com/iframe_api';
+        //     cached.push(src);
+        //     script.id = 'YTPlayer-script';
+        //     script.src = src;
+        //     document.body.appendChild(script);
+        //     const onScriptError = () => {
+        //         script.remove();
+        //         cached.splice(0, 1);
+        //     }
+        //     script.addEventListener('error', onScriptError, true);
+        // }
+            let _player:  YT.Player;
+        
+            // called when Youtube iframe api is ready. We do all component initialization here
+            window.onYouTubeIframeAPIReady = function onYouTubeIframeAPIReady() {
+                _player = new YT.Player(YT_IFRAME_ID, {
+                    videoId: initialVideo,
+                    events: {
+                    'onReady': _onPlayerReady,
+                    'onStateChange': _onPlayerStateChange,
+                    },
+                    playerVars: {
+                        // controls: 0,
+                        showinfo: 0,
+                        start: start,
+                        end: end,
+                        autoplay: 0
+                    },
+                });
+                player.current = _player;
+            }
+    }, [initialVideo, onPlayerReady, onPlayerStateChange, start, end]);
+
+    const changeVideo = (_videoId: string, start?: number, end?: number) => {
         videoId.current = _videoId;
         if(player.current) {
-            player.current.loadVideoById(_videoId);
+            player.current.loadVideoById({videoId: _videoId, startSeconds: start, endSeconds: end});
         }
     }
 
@@ -134,11 +160,12 @@ const YTPlayer: ForwardRefRenderFunction<IYTPlayer, YTPlayerProps> = ({initialVi
     }
 
     return (
-        <iframe id={YT_IFRAME_ID}
-            {...props}
-            src={`https://www.youtube.com/embed/${initialVideo}?enablejsapi=1&controls=0&rel=0`}
-            rel="noopener noreferrer"
-        />
+        <>
+            <div id={YT_IFRAME_ID} {...props} className={classes(props.className, 'relative')}>
+                {children}
+            </div>
+            <Script src="https://www.youtube.com/iframe_api" id="YTPlayer-script"/>
+        </>
     )
     
 }
