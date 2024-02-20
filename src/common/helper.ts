@@ -85,3 +85,13 @@ export const debounce = (func: Function, timeout: number) => {
     }, timeout);
   };
 }
+
+/**
+ * Check if device is mobile using the user agent from header
+ * @param userAgent Header user agent info 
+ * @returns ``true`` if it's a device
+ */
+export const isMobile = (userAgent: string) => {
+  // no need to parse user agent just check through
+  return /Android|BlackBerry|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/gi.test(userAgent);
+}

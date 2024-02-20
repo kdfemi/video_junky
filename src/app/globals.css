@@ -68,6 +68,7 @@
     width: 1rem;
     border-radius: theme('borderRadius.full');
     background-color: theme('colors.junky-yellow');
+    cursor: pointer;
   }
 
   input[type=range].range::-moz-range-thumb {

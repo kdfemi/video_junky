@@ -199,6 +199,7 @@ const config: Config = {
     '^src/(.*)$': '<rootDir>/src/$1',
     // "\\.svg": "<rootDir>/__mocks__/svg.js"
   },
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts']
 };
 
 const createJestConfig = nextJest({

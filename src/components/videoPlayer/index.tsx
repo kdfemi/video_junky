@@ -17,6 +17,12 @@ export type VideoPlayerProps = {};
 
 type TrimValueWithDuration = TrimValue & {duration: number};
 
+/**
+ * Get cached Trim value for a video if empty it will return default value
+ * ```{min: 0, max: 100, duration: 0}```
+ * @param videoId Video id
+ * @returns 
+ */
 const getIdTrim = (videoId: string): TrimValueWithDuration => {
     const item = localStorage.getItem(videoId);
     if(item) {
@@ -26,6 +32,11 @@ const getIdTrim = (videoId: string): TrimValueWithDuration => {
     return {min: 0, max: 100, duration: 0}
 }
 
+/**
+ * Save Video trim state in local storage
+ * @param videoId Video id
+ * @param trim 
+ */
 const saveIdTrim = (videoId: string, trim: TrimValueWithDuration) => {
     localStorage.setItem(videoId, JSON.stringify(trim));
 }
@@ -33,7 +44,7 @@ const saveIdTrim = (videoId: string, trim: TrimValueWithDuration) => {
 const VideoPlayer: FC<VideoPlayerProps> = () => {
     const searchParams = useSearchParams();
     const [video, setVideo] = useState<Video>();
-    const [loading, setLoading] = useState(false);
+    const [, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const videoId = searchParams.get('videoId');
     const ytPlayer = useRef<IYTPlayer>(null);
@@ -43,6 +54,7 @@ const VideoPlayer: FC<VideoPlayerProps> = () => {
     const trimInitiated = useRef(false);
 
     useEffect(() => {
+        // fetch Video details from backend
         const fetchVideo = async () => {
             try {
                 setLoading(true);
@@ -61,12 +73,13 @@ const VideoPlayer: FC<VideoPlayerProps> = () => {
             }
         };
         if(videoId) {
+            // Get Trim value duration before changing/loading  video
             const {endSeconds, startSeconds, max, min, duration} = getTrimDuration();
             setTrim({duration, max, min});
-            
             if(min === 0 && max === 100) {
                 trimInitiated.current = false;
             } else {
+                // trimInitiated to true in order to play new video from previous trimmed value
                 trimInitiated.current = true;
             }
             ytPlayer.current?.changeVideo(videoId, startSeconds, endSeconds);
@@ -75,40 +88,55 @@ const VideoPlayer: FC<VideoPlayerProps> = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [videoId]);
 
+    /**
+     * Get and calculate trim value duration point
+     * @returns trim values and trim duration point
+     */
     const getTrimDuration = () => {
         const {max, min, duration} = getIdTrim(videoId!);
         const minDuration = calculateDuration(min, duration);
         const maxDuration = calculateDuration(max, duration);
         return {startSeconds: minDuration, endSeconds: maxDuration, duration, max, min};
     }
-
+    /**
+     * 
+     * @param percentage trim value in percentage
+     * @param duration Video duration in seconds
+     * @returns 
+     */
     const calculateDuration = (percentage: number, duration?: number) => {
         return duration ? (percentage / 100) * duration : undefined;
     }
 
+    // Setup Video player when YouTube player is ready
     const handleOnPlayerReady = (event: YT.PlayerEvent, videoId: string) => {
+        // Get initial video trim value
         const oldTrim = getIdTrim(videoId);
+        // update trim duration only as that is the only info we can't determine before loading video
         oldTrim.duration = event.target.getDuration();
         saveIdTrim(videoId, oldTrim);
         setTrim(oldTrim);
-        // event.target.playVideo();
         setPlayerReady(true);
     };
 
     const handleOnPlayerStateChange = (state: YT.PlayerState, videoId: string) => {
-        if(state == 1) {
+        // Update Play button state
+        if(state == 1 /** Video Playing */) {
             setIsPaused(false)
         } else {
+            // buffering, stop and loading, should take pause state
             setIsPaused(true)
         }
     };
 
     const handlePlay = () => {
         if(trimInitiated.current) {
+            // When Slider thumb has been moved we need to get the values and play video from the set point
             const {endSeconds, startSeconds} = getTrimDuration();
             ytPlayer.current?.loadVideoDuration({endSeconds, startSeconds});
             trimInitiated.current = false
         } else {
+            // Play and pause move if trim  value is not changed
             if(isPaused) {
                 ytPlayer.current?.plaVideo();
             } else {
@@ -129,6 +157,7 @@ const VideoPlayer: FC<VideoPlayerProps> = () => {
         trimInitiated.current = true;
     }, 500)
 
+    // Displays Video description or error if an error occurred or null if video is not selected
     const renderState = () => {
         if(!videoId) {
             return null;
@@ -157,13 +186,14 @@ const VideoPlayer: FC<VideoPlayerProps> = () => {
         return <VideoDescriptionShimmer />
     }
 
+    // Renders video Range and Play buttons
     const renderControllerState = () => {
         if(!playerReader) {
             return (<ControlShimmer/>)
         }
         return (
             <div className="flex items-center gap-x-2 mt-2" >
-                <div role="button" aria-label={isPaused ? 'Play' : 'Pause'} onClick={handlePlay}>
+                <div role="button" aria-label={isPaused ? 'Play' : 'Pause'} title={isPaused ? 'Play' : 'Pause'} onClick={handlePlay}>
                 {isPaused ?  (
                         <PlayIcon className="text-junky-yellow" width={24} height={24}/>
                     ) : (
@@ -192,6 +222,7 @@ const VideoPlayer: FC<VideoPlayerProps> = () => {
                         start={calculateDuration(trim.min, trim.duration)}
                         end={calculateDuration(trim.max, trim.duration)}
                     >
+                        {/* will be replaced by Youtube */}
                         <div className={classes('w-full top-0 bottom-0 rounded-xl', styles.shimAnimation)} style={{position: 'absolute'}}/>
                     </YTPlayer>
                     {renderControllerState()}

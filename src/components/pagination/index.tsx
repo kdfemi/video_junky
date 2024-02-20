@@ -7,13 +7,20 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 type PaginationProps = {
-    count: number;
+    /**
+     * Called one page changes
+     * @param page new page
+     * @returns the new page
+     */
     onPageChange?: (page: number) => void;
     className?: string;
+    /**
+     * Number of pages
+     */
     size: number;
 
 }
-const Pagination: FC<PaginationProps> = ({onPageChange, count, size, className}) => {
+const Pagination: FC<PaginationProps> = ({onPageChange, size, className}) => {
     const pageClasses = classes(
         "flex items-center justify-center px-3 h-8 text-gray-500 border relative", 
         "bg-gray-800 border-gray-700 hover:bg-gray-700 hover:text-white"
@@ -23,6 +30,7 @@ const Pagination: FC<PaginationProps> = ({onPageChange, count, size, className})
     const [clientWidth, setClientWidth] = useState(0);
     const pathname = usePathname();
 
+    // create Page url
     const createPageHref = (pageNumber: number | string) => {
         const params = new URLSearchParams(searchParams);
         params.set('page', pageNumber.toString());
@@ -46,7 +54,6 @@ const Pagination: FC<PaginationProps> = ({onPageChange, count, size, className})
     const onMounted = useCallback((element: HTMLDivElement) => {
         if(element?.parentElement) {
             setClientWidth(element.parentElement!.clientWidth)
-            // setPagesPerView(Math.floor(element.parentElement!.clientWidth / 44) - 3)
         }
     }, [])
 
@@ -55,7 +62,7 @@ const Pagination: FC<PaginationProps> = ({onPageChange, count, size, className})
     }
 
     return (
-        <div className={classes(className)} ref={onMounted}>
+        <div className={classes(className)} ref={onMounted} onClick={(e) => e.stopPropagation()} data-testid="pagination">
             <div className={classes("flex text-sm", 'justify-center')}>
                 <Link onClick={previous} href={createPageHref(Math.max(currentPage - 1, 1))}>
                 <p className={classes(pageClasses, "rounded-s-lg")}>
@@ -65,7 +72,7 @@ const Pagination: FC<PaginationProps> = ({onPageChange, count, size, className})
                 </Link>
                 {
                 Array.from({ length: size }, (_, i) => (
-                    <Link key={i} onClick={() => handlePage(i + 1)} href={createPageHref(i + 1)}>
+                    <Link key={i} onClick={() => handlePage(i + 1)} href={createPageHref(i + 1)} data-testid={`page-${i}`}>
                     <p className={classes(pageClasses, currentPage === i + 1 ? "text-white !bg-junky-green border-junky-green" : "")}>
                         {i + 1}
                     </p>

@@ -1,5 +1,5 @@
 import 'server-only';
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, JunkyPaginatedResponse, JunkyResponse } from "src/common/JunkyResponse";
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, JunkyPaginatedResponse } from "src/common/JunkyResponse";
 import data from "src/db/data";
 import { GetVideosRequestParams } from "src/types/VideoService.model";
 

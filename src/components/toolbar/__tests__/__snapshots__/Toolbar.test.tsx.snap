@@ -1,0 +1,48 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Toolbar Should match snap shot 1`] = `
+<header
+  class="flex items-center pt-8 px-6 gap-x-6 justify-between "
+  data-testid="toolbar"
+>
+  <div
+    class="text-2xl bg-logo-gradient block text-transparent bg-clip-text font-roboto font-bold"
+  >
+    JUnkie
+  </div>
+  <nav
+    class="flex items-center nav"
+  >
+    <ul
+      class="flex items-center justify-center gap-x-6 text-base max-md:hidden font-roboto"
+    >
+      <a
+        class="nav__item"
+        href="#"
+      >
+         
+        Videos
+      </a>
+      <a
+        class="nav__item"
+        href="#"
+      >
+         
+        Discover
+      </a>
+      <a
+        class="nav__item"
+        href="#"
+      >
+         
+        Trending
+      </a>
+    </ul>
+  </nav>
+  <div>
+    <div
+      class="w-5 h-5 rounded-sm bg-gradient-conic to-junky-green from-junky-yellow"
+    />
+  </div>
+</header>
+`;

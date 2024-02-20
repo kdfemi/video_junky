@@ -7,7 +7,7 @@ export type ToolbarProps = {} & ComponentProps<'header'>;
 
 const Toolbar: FC<ToolbarProps> = ({className, ...props}) => {
     return (
-        <header {...props} className={classes("flex items-center pt-8 px-6 gap-x-6 justify-between", className)}>
+        <header {...props} className={classes("flex items-center pt-8 px-6 gap-x-6 justify-between", className)} data-testid="toolbar">
             <div className="text-2xl bg-logo-gradient block text-transparent bg-clip-text font-roboto font-bold">
                 JUnkie
             </div>

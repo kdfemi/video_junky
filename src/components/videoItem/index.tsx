@@ -7,7 +7,14 @@ import { classes } from 'src/common/helper';
 import { Video } from 'src/types/Video';
 
 type VideoItemProps = {
+  /**
+   * Video properties
+   */
   video: Video;
+  /**
+   * Called when a video is selected
+   * @returns 
+   */
   onSelected?: () => void;
 };
 
@@ -18,12 +25,14 @@ const VideoItem: FC<VideoItemProps> = ({video, onSelected}) => {
   
   const idParam = searchParams.get('videoId') ?? '';
 
+  // Create video url
   const createVideoHref = (videoId: string) => {
     const params = new URLSearchParams(searchParams);
     params.set('videoId', videoId);
     return `${pathname}?${params.toString()}`;
   };
 
+  // check if video is selected
   const isActive = idParam === id.videoId;
 
   return (
@@ -31,10 +40,10 @@ const VideoItem: FC<VideoItemProps> = ({video, onSelected}) => {
       'flex gap-x-3 items-center px-2 py-2 font-roboto',
       'rounded-md border border-transparent relative overflow-hidden',
       isActive ? '!border-junky-yellow' : 'hover:!border-junky-yellow'
-      )}>
+      )} data-testid="videoItem">
         {/* srcSet={`${medium.url} 480w ${high.url} 800w`} sizes="(max-width: 600px) 480px, 800px" */}
-        <div className='w-48 h-48'>
-          <Image alt={title} src={original.url} width={original?.width ?? 300} height={original?.height ?? 300} className="w-48 h-48 rounded-lg overflow-hidden"/>
+        <div className='w-36 h-36 md:w-48 md:h-48 flex-shrink-0 border border-gray-600 rounded-lg overflow-hidden'>
+          <Image loading="lazy" alt={title} src={original.url} width={original?.width ?? 300} height={original?.height ?? 300} className="w-full h-full rounded-lg"/>
         </div>
         <div className='space-y-4 flex-1'>
           <h3 className='text-sm font-semibold max_lines_2' title={title}>{title}</h3>

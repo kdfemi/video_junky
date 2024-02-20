@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SideMenu Should match snapshot 1`] = `
+<div
+  data-testid="sideMenu"
+>
+  <button
+    class="flex gap-2 md:hidden mt-2 mb-4 bg-junky-yellow text-primary font-medium p-1 rounded-md items-center"
+  >
+    <svgr-url
+      classname="inline"
+      height="24"
+      width="24"
+    />
+    <span>
+      Show Videos
+    </span>
+  </button>
+  <aside
+    class="w-full md:max-w-[530px] md:pr-3 overflow-y-auto space-y-4 md:h-[calc(100vh-64px-2.5rem)] pb-5 md:relative fixed right-0 bottom-0 top-0 px-4 md:left-[unset] md:right-[unset] md:bottom-[unset] md:top-[unset] bg-primary z-40 transition-transform md:transition-none ease-in duration-500 md:block translate-x-[-100vw]"
+  >
+    <div
+      class="sticky top-0 space-y-2 flex flex-col bg-primary pb-3 z-10 md:pt-0 pt-5 items-center gap-3"
+    >
+      <div
+        aria-label="Close Menu"
+        class="md:hidden self-end"
+        role="button"
+        title="Close Menu"
+      >
+        <svgr-url
+          classname="text-white"
+        />
+      </div>
+      <div
+        class="w-full"
+      >
+        <div
+          class="relative flex flex-1 flex-shrink-0"
+        >
+          <label
+            class="sr-only"
+            for="search"
+          >
+            Search
+          </label>
+          <input
+            class="focus:border-junky-yellow block w-full rounded-md border bg-primary text-white border-gray-500 py-[9px] pl-10 text-sm outline-none placeholder:text-gray-500 "
+            placeholder="Search Videos"
+            value="10"
+          />
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+`;
